@@ -1,3 +1,3 @@
 # bimm143_github
-My classwork from W25 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC San Diego
+My classwork from Winter 2025 [BIMM143](https://bioboot.github.io/bimm143_W25/) at UC San Diego
 
