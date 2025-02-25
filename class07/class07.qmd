@@ -1,0 +1,246 @@
+---
+title: "class 7: Machine learning 1"
+author: "Bayah Essayem (A17303992)"
+format: pdf
+toc: TRUE
+date: January 28 2025
+---
+
+Today we will explore unsupervised machine learning methods including clustering and dimensionality reduction methods.
+
+Let's start by making up some data (where we know there are clear groups) thay we can use to test out different clustering methods.
+
+We can use the 'rnorm()' function to help us here:
+
+```{r}
+hist(rnorm(n=3000, mean=3))
+```
+
+Make data with two "clusters"
+
+```{r}
+x <- c(rnorm (30, mean = -3), 
+       
+       rnorm (30, mean = +3))
+
+z <- cbind(x, rev(x))
+
+head(z)
+
+plot(z)
+```
+
+## K-means clustering
+
+The main function in "base" R for K-means clustering is called 'kmeans()'
+
+```{r}
+k <- kmeans(z, centers = 2)
+k
+```
+
+How big is z?
+```{r}
+nrow(z) #60
+ncol(z) #2
+```
+
+```{r}
+attributes(k)
+```
+
+> Q. How many points lie in each cluster?
+
+```{r}
+k$size
+```
+
+> Q. What component of our results tell us about the cluster membership (i.e. which point likes in which cluster) ?
+
+```{r}
+k$cluster
+```
+
+> Q. Center of each cluster?
+
+```{r}
+k$centers
+```
+
+> Q. Put this result info together and make a little "base R" plot of our clustering result. Also add the cluster center points to this plot.
+
+```{r}
+plot(z, col = "blue")
+```
+
+```{r}
+plot(z, col = c("blue", "red") )
+```
+
+You can color by number, each color corresponds with a number, like 7 = yellow.
+```{r}
+plot(z, col = c(1,3,5,2,4,6,7,8,9))
+```
+
+Plot colored by cluster membership:
+
+```{r}
+plot(z, col = k$cluster)
+```
+
+Now, we must add points for the cluster centers
+```{r}
+plot(z, col=k$cluster)
+points(k$centers, col="blue", pch = 8)
+```
+
+> Q. Run kmeans on our input (z) and define 4 clusters making the same result visualization plot as above (plot of z colored by cluster membership).
+
+```{r}
+w <- c( rnorm (30, mean = -3), rnorm (30, mean = +3), rnorm (30, mean = -3), rnorm (30, mean = +3) )
+
+r <- cbind(w, rev(w))
+
+head(r)
+
+plot(r)
+```
+
+```{r}
+new_plot <- kmeans(r, centers = 4)
+plot(r, col = new_plot$cluster)
+points(k$centers, col = "purple", pch = 8)
+```
+
+## Hierachical Clustering 
+
+Main function in base R for this is called 'hclust()' it will take as input a distance matrix (key point is that you can't just give your "raw" data as input - you have to first calculate a distance matrix from your data).
+
+```{r}
+d <- dist(z)
+hc <- hclust(d)
+hc
+```
+
+This plot separates 1-30 and 31-60 in two clusters
+```{r}
+plot(hc)
+abline(h=6, col="red")
+```
+
+Once I inspect the dendrogram (clustering tree), I can "cut" the tree to yield my groupings or clusters. The function to do this is called 'cutree()'
+
+```{r}
+cut <- cutree(hc, h = 6)
+```
+
+```{r}
+plot(z, col=cut)
+```
+
+# Hands on with Principal Component Analysis (PCA)
+
+Let's examine some silly 17-dimensional data detailing food consumption in the UK (England, Scotland, Wales, and N. Ireland). Are these countries eating habits different or similar and if so, how?
+
+### Data import
+
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url, row.names = 1)
+x
+```
+
+> Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this question?
+
+```{r}
+nrow(x)
+ncol(x)
+dim(x)
+```
+
+>Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+>A2. I prefer the approach where the file is read and the 'row.names()' argument is used to set the first column to read as rows. This is because of all the methods, it seems as the most straightforward and creates the most minimal code that is able to accomplish the same goals as other approaches. This approach is more robust since the approach of manually setting the row names can cause pitfalls related to missing values, duplicates, and unintended type conversions. It requires extra validation to ensure row names are unique and properly formatted before assignment.
+
+The food category is defined by colors, as a bar plot
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+```
+
+>Q3: Changing what optional argument in the above barplot() function results in the following plot?
+>A3. By changing 'beside=' into False rather than True, the bars will stack rather than be placed side by side.
+
+Now, if you made it stacked it makes an even worse graph (done by changing beside to F):
+```{r}
+barplot(as.matrix(x), beside=F, col=rainbow(nrow(x)))
+```
+
+> Q. Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+
+> A5. This graph shows a graph comparing all UK countries, so for the first plot on the top left, it shows England on y axis and wales on x axis, then for the graph right next to it, it's England (y) and Scotland (x). When there's points plotted outside of the diagonal it'll be because one nation consumes more of a certain item than the other, on the graph that shows England and N. Ireland there is a blue point deviating showing Ireland consumes more of whatever the blue point represents.
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+```
+
+Looking at these types of "pairwise plots" can be helpful but it does not scale well and kind of sucks! Basically, there's probably a better way to plot this info
+
+## PCA to the rescue!
+
+The main function for PCA in base R is called 'prcomp()'. This function wants the transpose of our input data - i.e. the important food categories as columns and countries as rows.
+
+>Q6. What is the main differences between N. Ireland and the other countries of the UK in terms of this data-set?
+>A6. The main difference between N. Ireland and the other countries of the UK lies in PC1, which captures 67.4% of the total variance. N. Ireland's significantly higher PC1 value indicates that it differs substantially in the primary features driving the data, compared to England, Wales, and Scotland. In contrast, the other UK countries share more similar values on PC1, with Scotland showing some distinct behavior along PC2.
+
+
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+For the cumulative portion, pc1 cumulative proportion was added with pc2 proportion of variance to result in pc2 cumulative proportion then that was added with pc3 proportion of variance to give pc3 cumulative proportion.
+
+
+Let's see what is in our PCA result object 'pca'
+
+```{r}
+attributes(pca)
+```
+The 'pca$x' result object is where we will focus first as this details how the countries are related to each other in terms of our new "axis" (aka "PCs", "eigenvectors", etc.)
+
+```{r}
+head(pca$x)
+```
+
+> Q7. Complete the code below to generate a plot of PC1 vs PC2. The second line adds text labels over the data points
+
+```{r}
+plot(pca$x[,1], pca$x[,2], pch = 16, col = c("orange", "red", "blue", "green"), xlab = "PC1", ylab = "PC2")
+```
+
+```{r}
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", xlim=c(-270,500))
+text(pca$x[,1], pca$x[,2], colnames(x))
+```
+
+
+>Q8. Customize your plot so that the colors of the country names match the colors in our UK and Ireland map and table at start of this document.
+
+```{r}
+plot(pca$x[,1], pca$x[,2], xlab="PC1", ylab="PC2", xlim=c(-270,500) )
+text(pca$x[,1], pca$x[,2], colnames(x), col = c("orange", "red", "blue", "green"))
+```
+ 
+
+We can look at the so-called PC "loadings" result object to see how the original foods contribute to our new PCs (i.e. how the original variables contribute to our new better variable)
+
+Writing [,1] makes it so it only displays the values that contribute to PC 1 instead of all the data
+
+```{r}
+pca$rotation[,1]
+```
+
+>Q9: Generate a similar ‘loadings plot’ for PC2. What two food groups feature prominantely and what does PC2 maninly tell us about?
+A9. The two food groups that are featured prominantely are fresh potatoes and soft drinks. PC2 mainly tells us about the second-largest variance of the dataset which displays a different variance than that of PC1
+
+>Q10: How many genes and samples are in this data set?
+A10.
+
