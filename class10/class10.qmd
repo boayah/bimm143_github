@@ -1,0 +1,186 @@
+---
+title: "Class10"
+author: "Bayah Essayem (A17303992)"
+date: "2025-02-06"
+format: pdf
+toc: TRUE
+---
+
+## The PDB database
+
+The main repository of biomolecular structure data is called the PDB found at https://www.rcsb.org
+
+Let's see what this database contains. I went to PDB > Analysis > PDB Statistics > By Exp method and molecular type
+
+```{r}
+pdbstats <- read.csv("Data Export Summary.csv")
+pdbstats
+```
+
+> Q1: What percentage of structures in the PDB are solved by X-Ray and Electron Microscopy.
+> A1: percentage solved by x-ray is 82.83549%, while the Electron Microscopy is 10.75017%
+
+```{r}
+pdbstats$X.ray
+```
+
+The comma in these numbers is causing them to be read as characters rather than numeric. This can be fixed by replacing "," with 'sub()' function:
+
+```{r}
+x <- pdbstats$X.ray
+sum( as.numeric(sub(",", "", x)))
+```
+
+Or I can use the **reader** package and the 'read.csv' function 
+
+```{r}
+library(readr)
+pdbstats <- read_csv("Data Export Summary.csv")
+pdbstats
+```
+I want to clean the column name so they are all lower case and don't have spaces in them
+
+```{r}
+colnames(pdbstats)
+```
+
+```{r}
+library(janitor)
+df <- clean_names(pdbstats)
+df
+```
+
+Total number of X-ray structures
+```{r}
+sum(df$x_ray)
+```
+
+Percentage of structures in the PDB are solved by X-ray
+```{r}
+sum(df$x_ray)/sum(df$total) * 100
+```
+
+Total number of EM (Electron Microscopy)
+```{r}
+sum(df$em)/sum(df$total) * 100
+```
+
+Total number of structures
+```{r}
+sum(df$total)
+```
+
+> Q2: What proportion of structures in the PDB are protein?
+> A2: 0.8623852
+
+```{r}
+( df[1, "total"])/sum(df$total)
+```
+
+
+
+The main Mol* homepage at:  https://molstar.org/viewer/. We can input our own PDB files or just give it a PDB database accession code (4 letter PDB code)
+
+![Molecular view of 1HSG](1HSG.png)
+
+![Clear Ligand](1HSG_1.png)
+
+![Water 308 Bonding](1HSG_2.png)
+
+![No Polymer](1HSG_3.png)
+
+![A&B Residues of Aspartate(ASP25 Amino Acids)](1HSG_4.png)
+
+> Q4: Water molecules normally have 3 atoms. Why do we see just one atom per water molecule in this structure?
+> A4: In this case, the hydrogen atoms are attached at a certain angle that makes them not visible and makes the molecule polar.
+
+> Q5: There is a critical “conserved” water molecule in the binding site. Can you identify this water molecule? What residue number does this water molecule have
+> A5: Yes, it is water 308.
+
+> Q6: Generate and save a figure clearly showing the two distinct chains of HIV-protease along with the ligand. You might also consider showing the catalytic residues ASP 25 in each chain and the critical water (we recommend “Ball & Stick” for these side-chains). Add this figure to your Quarto document.
+
+## 3. Intro to Bio3D in R
+
+We can use the **bio3D** package for structural bioinformatics to read PDB data into R
+
+```{r}
+library(bio3d)
+
+pdb <- read.pdb("1hsg")
+
+pdb
+```
+
+
+> Q7: How many amino acid residues are there in this pdb object? 
+> A7: There are 198 amino acid residues.
+
+```{r}
+length(pdbseq(pdb))
+```
+
+
+> Q8: Name one of the two non-protein residues? 
+> A8: MK1
+
+> Q9: How many protein chains are in this structure? 
+> A9:There are 2, chains A and B
+
+
+Looking at the 'pdb()' object in more detail
+
+```{r}
+attributes(pdb)
+```
+
+```{r}
+head(pdb$atom)
+```
+
+Let's try a new function not yet in the bio3d package. It requires the **r3dmol** package that we need to install with 'install.packages("r3dmol")' and 'install.packages("shiny")'
+
+```{r}
+#source("https://tinyurl.com/viewpdb")
+#view.pdb(pdb, backgroundColor = "white")
+```
+
+
+
+> Q10. Which of the packages above is found only on BioConductor and not CRAN? 
+> A10: BiocManager
+
+> Q11. Which of the above packages is not found on BioConductor or CRAN?:
+> A11. The bio3d package.
+
+> Q12. True or False? Functions from the devtools package can be used to install packages from GitHub and BitBucket? 
+> A12. True
+
+## 4. Predicting functional dynamics 
+
+We can use the 'nma()' function in bio3d to predict the large-scale functional motion of biomolecules.
+
+```{r}
+adk <- read.pdb("6s36")
+adk
+```
+
+```{r}
+m <- nma(adk)
+plot(m)
+```
+Write out a trajectory of the predicted molecular motion:
+```{r}
+meow <- mktrj(m, file="adk_m7.pdb")
+```
+
+> Q13. How many amino acids are in this sequence, i.e. how long is this sequence? 
+> A13. This sequence is 214 amino acids long.
+
+```{r}
+library(bio3d)
+aa <- get.seq("1ake_A")
+aa
+```
+
+
+
