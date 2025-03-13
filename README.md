@@ -8,6 +8,6 @@ My classwork from Winter 2025 [BIMM143](https://bioboot.github.io/bimm143_W25/) 
 - Class08[]()
 - Class09[](https://htmlpreview.github.io/?https://raw.githubusercontent.com/boayah/bimm143_github/refs/heads/main/class09/class09.html)
 - Class10[]()
-- 
+- Class13(https://htmlpreview.github.io/?https://raw.githubusercontent.com/boayah/bimm143_github/refs/heads/main/class_13/class_13.html)
 - Class14[](https://github.com/boayah/bimm143_github/blob/main/class%2014/class14.pdf)
   
