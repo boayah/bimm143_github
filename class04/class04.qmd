@@ -1,0 +1,19 @@
+---
+title: "class04"
+author: "Bayah Essayem (A17303992)"
+date: 03-13-2025
+toc: TRUE
+format: html
+---
+
+```{r}
+x <- 1:50
+plot (x, sin(x))
+```
+
+```{r}
+#Make this nicer
+plot(x, sin(x), col = "blue", type="l", lwd=3)
+```
+
+
