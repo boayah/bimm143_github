@@ -1,0 +1,13 @@
+This is all just a basic text editor called "nano" that's available on nearly all computers.
+
+Key UNIX cmds include:
+
+pwd: print working directory
+ls: list files and dirs
+cd: change Dir
+mkdir: make new directory
+rm: remove/delete
+nano: text editor
+PATHs: a very important concept that relates to the file structure
+cp: copy file or dir to a new one
+less: to view contents of file, [Q] to exit

@@ -1,0 +1,154 @@
+---
+title: "class17"
+author: "Bayah Essayem (A17303992)"
+date: 03-09-2025
+toc: TRUE
+format: pdf
+---
+
+Instance ID
+
+i-02ac27b775bcef40b (bimm143_bayah)
+Open an SSH client.
+
+Locate your private key file. The key used to launch this instance is bimm143_bayah.pem
+
+Run this command, if necessary, to ensure your key is not publicly viewable.
+chmod 400 "bimm143_bayah.pem"
+
+Connect to your instance using its Public DNS:
+ec2-52-42-60-216.us-west-2.compute.amazonaws.com
+
+Example:
+
+ssh -i "bimm143_bayah.pem" ubuntu@ec2-52-42-60-216.us-west-2.compute.amazonaws.com
+
+scp -r -i "bimm143_bayah.pem" ubuntu@ec2-52-42-60-216.us-west-2.compute.amazonaws.com:~/*_quant .
+
+## Downstream analysis
+
+'txtimport' can be useful for directly importing Kallisto results.
+
+```{r}
+library(tximport)
+
+# setup the folder and filenames to read
+folders <- dir(pattern="SRR21568*")
+samples <- sub("_quant", "", folders)
+files <- file.path( folders, "abundance.h5" )
+names(files) <- samples
+
+txi.kallisto <- tximport(files, type = "kallisto", txOut = TRUE)
+```
+
+```{r}
+head(txi.kallisto$counts)
+```
+
+To view how many transcripts there are for each sample:
+
+```{r}
+colSums(txi.kallisto$counts)
+```
+
+For viewing how many transcripts are found in at least one sample.
+
+```{r}
+sum(rowSums(txi.kallisto$counts)>0)
+
+```
+
+This allows us to filter the samples to not include any that have no reads.
+
+```{r}
+to.keep <- rowSums(txi.kallisto$counts) > 0
+kset.nonzero <- txi.kallisto$counts[to.keep,]
+```
+
+```{r}
+keep2 <- apply(kset.nonzero,1,sd)>0
+x <- kset.nonzero[keep2,]
+```
+
+## Principal Component Analysis
+
+```{r}
+pca <- prcomp(t(x), scale=TRUE)
+```
+
+```{r}
+summary(pca)
+```
+
+To create a PCA plot showing PC1 v PC2:
+
+```{r}
+plot(pca$x[,1], pca$x[,2],
+     col=c("blue","blue","red","red"),
+     xlab="PC1", ylab="PC2", pch=16)
+```
+
+To create a PCA plot showing PC1 v PC3:
+
+```{r}
+plot(pca$x[,1], pca$x[,3],
+     col=c("blue","blue","red","red"),
+     xlab="PC1", ylab="PC3", pch=16)
+```
+
+To create a PCA plot showing PC2 v PC3:
+
+```{r}
+plot(pca$x[,2], pca$x[,3],
+     col=c("blue","blue","red","red"),
+     xlab="PC2", ylab="PC3", pch=16)
+```
+
+```{r}
+library(ggplot2)
+library(ggrepel)
+
+# Make metadata object for the samples
+colData <- data.frame(condition = factor(rep(c("control", "treatment"), each = 2)))
+rownames(colData) <- colnames(txi.kallisto$counts)
+
+# Make the data.frame for ggplot 
+y <- as.data.frame(pca$x)
+y$Condition <- as.factor(colData$condition)
+
+ggplot(y) +
+  aes(PC1, PC2, col=Condition) +
+  geom_point() +
+  geom_text_repel(label=rownames(y)) +
+  theme_bw()
+```
+
+## Differential-expression analysis
+
+```{r}
+library(DESeq2)
+```
+
+By using DESeq2, we have access to tools that help with the differential-expression analysis and this can be done using counts and average transcript lengths from txtimport
+
+```{r}
+sampleTable <- data.frame(condition = factor(rep(c("control", "treatment"), each = 2)))
+rownames(sampleTable) <- colnames(txi.kallisto$counts)
+```
+
+```{r}
+dds <- DESeqDataSetFromTximport(txi.kallisto,
+                                sampleTable, 
+                                ~condition)
+```
+
+```{r}
+dds <- DESeq(dds)
+```
+
+```{r}
+res <- results(dds)
+head(res)
+```
+
+
