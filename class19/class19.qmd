@@ -1,0 +1,32 @@
+---
+title: "class19"
+author: "Bayah Essayem (A17303992)"
+format: html
+toc: TRUE
+date: 03-11-2025
+---
+
+```{r}
+library(bio3d)
+unique_seq <- read.fasta("A17303992_mutant_seq.fa")
+```
+
+```{r}
+score <- conserv(unique_seq)
+score
+```
+
+```{r}
+positions <- which(score !=1)
+positions
+```
+
+```{r}
+residues <- unique_seq$ali[, positions]
+residues
+```
+
+```{r}
+paste(residues[,1], positions, residues [,2], sep="")
+```
+

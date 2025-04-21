@@ -1,0 +1,55 @@
+---
+title: "Find_A_Gene_Project"
+author: "Bayah Essayem (A17303992)"
+date: 03-10-2025
+toc: TRUE
+format: pdf
+---
+
+> [Q7] Generate a sequence identity based heatmap of your aligned sequences using R. 
+
+```{r}
+library(bio3d)
+```
+
+```{r}
+aligned <- read.fasta("muscle-I20250311-043109-0890-73887014-p1m.fa")
+```
+
+```{r}
+id_matrix <- seqidentity(aligned)
+```
+
+This map is created using the pheatmap package, creating a more detailed heatmap:
+
+```{r}
+library(pheatmap)
+
+pheatmap(id_matrix, col = hcl.colors(11, "LaJolla")[3:10], breaks = c(0.86,0.875, 0.88,0.89, 0.9,0.985,0.99,0.995, 1), )
+```
+
+This map is created just using the heatmap function:
+
+```{r}
+#library(gplots)
+
+tiff("Findagene_heatmap.tiff", width = 4.5, height = 5, units = "in", compression = "lzw", res = 250)
+
+heatmap.2(trace = "none", density.info = "none",id_matrix, col = hcl.colors(11, "LaJolla")[3:10], breaks = c(0.86,0.875, 0.88,0.89, 0.9,0.985,0.99,0.995, 1), cexRow = 0.8, cexCol = 0.8, cellnote = id_matrix, notecol = "white",key.title = "", key.xlab = "Identity", lwid = c(1,3), lhei = c(1.5,3.5))
+
+dev.off()
+```
+
+```{r}
+small_alignment <- read.fasta("seqdump (1).txt")
+```
+
+
+```{r}
+blast.pdb(small_alignment)
+```
+
+```{r}
+pdb.annotate(small_alignment)
+```
+
